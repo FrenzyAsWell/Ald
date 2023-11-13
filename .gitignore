@@ -1,4 +1,10 @@
+# GitHub #
+
+.gitmodules
+
 # CMAKE #
+
+build/
 
 CMakeLists.txt.user
 CMakeCache.txt
