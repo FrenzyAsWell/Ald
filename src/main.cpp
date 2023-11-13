@@ -1,94 +1,94 @@
-#include <cstdio>
-#include <iostream>
 #include <algorithm>
-
+#include <cstdlib>
+#include <forward_list>
+#include <fstream>
+#include <ios>
+#include <iostream>
+#include <limits>
 #include <string>
+#include <type_traits>
 #include <vector>
+#include "../external/tree.hh/src/tree.hh"
 
-struct cord_xy
+#include <nlohmann/json.hpp>
+
+#define SKIP_ARGV 1
+
+struct task_t 
 {
-	int x;
-	int y;
-};
+	std::string name;
+	int priority;
 
-class CBox_Drawer
+	std::vector<task_t> sub_tasks;
+} Ttask;
+
+std::string space_subtask = "";
+
+int InsertDataIntoTree(tree<std::string>::iterator root_node, tree<std::string> base_tree)
 {
-	private:
-		cord_xy start_point;
-		cord_xy end_point;
-	public:
-		void DrawBox(cord_xy current_cursor_pos, int size_h, int size_l)
-		{
-			start_point.y = current_cursor_pos.y;
-			start_point.x = current_cursor_pos.x;
+	char DoSubtaskCreation = 'N';
 
-			end_point.x = current_cursor_pos.x + size_h;
-			end_point.y = current_cursor_pos.y + size_l;
+	int subtasks_count = 0;
+	std::string subtask_name = " ";
 
-			for (int count_rows = 0; count_rows < size_h; count_rows++)
-			{
-				for (int count_columns = 0; count_columns < size_l; count_columns++)
-				{
-					if (count_columns <= 0 || count_columns >= size_l - 1)
-						std::cout << "┃";
-					else if (count_rows > 0 && count_rows < size_h - 1)
-						std::cout << ' ';
-					else
-						std::cout << "━";
-				}
-				std::cout << '\n';
+	std::cout << "Enter count sub-tasks for " << *root_node << ": ";
+	std::cin >> subtasks_count;
 
-			}
-
-			DrawBorders();
-		}
-		void DrawBorders()
-		{	
-			std::cout << "\033[" + std::to_string(start_point.x) + ';' + std::to_string(start_point.y) + 'H' << "┎";
-			std::cout << "\033[" + std::to_string(end_point.x) + ';' + std::to_string(start_point.y) + 'H' << "┗";
-			std::cout << "\033[" + std::to_string(start_point.x) + ';' + std::to_string(end_point.y) + 'H' << "┓";	
-			std::cout << "\033[" + std::to_string(end_point.x) + ';' + std::to_string(end_point.y) + 'H' << "┛";
-
-			std::cout << "\033[" + std::to_string(start_point.x + 2) + ';' + std::to_string(start_point.y + 2) + 'H';
-		}
-};
-
-int main()
-{	
-	setlocale(LC_ALL, "en_US.UTF-16");
-
-	CBox_Drawer object_drawer;
-
-	std::vector<std::string> task_storage; 
-	std::string temp_task = " ";
-	
-	cord_xy cursor_pos;
-	cursor_pos.x = 0;
-	cursor_pos.y = 0;
-
-	int size_height = 0; 
-	
-	for (int a = 0; a < 5; a++) 
-	{	
-		std::cout << (a + 1) << ". Enter your task: "; 
-		std::getline(std::cin, temp_task);
-
-		task_storage.push_back(temp_task);
-		if (size_height < temp_task.size())
-			size_height = temp_task.size();
-	}
-
-	std::system("clear");
-	object_drawer.DrawBox(cursor_pos, task_storage.size() + 2, size_height + 2);	
-
-	for (int a = 0; a < task_storage.size(); a++)
+	for (int a = 0; a < subtasks_count; a++) 
 	{
-		std::cout << task_storage[a] << "\033[1B";
-		std::cout << "\033[" + std::to_string(task_storage[a].size()) + "D"; 
-	}
+		std::cout << "Enter Sub-task name: "	;
 
-	
-	getchar();
+		std::cin >> subtask_name;
+		auto new_child = base_tree.append_child(root_node, subtask_name);
+
+		std::cout << "Do you want to create sub-tasks for " << subtask_name << ": ";
+		std::cin >> DoSubtaskCreation;
+
+		if (DoSubtaskCreation != 'N') 
+			InsertDataIntoTree(new_child, base_tree);
+	}
 
 	return 0;
+}
+
+
+void DisplayDataFromTree(tree<std::string> tree_tasks)
+{
+	auto locator_helper = std::find(tree_tasks.begin(), tree_tasks.end(), "root");
+	if (locator_helper != tree_tasks.end())
+	{
+		for (tree<std::string>::iterator sibiling_root = tree_tasks.begin(locator_helper); sibiling_root != tree_tasks.end(locator_helper); ++sibiling_root) 
+		{
+			for (int a = 0; a < tree_tasks.depth(sibiling_root) - 1; ++a)
+				std::cout << ' ';
+			std::cout << *sibiling_root << '\n';
+		}
+	}
+}
+
+int main(int argc, char* argv[])
+{
+	std::string json_filename = "../resources/task.json";
+	std::ofstream OutStream(json_filename);
+
+	tree<std::string> tree_tasks = {};
+	nlohmann::json json_editor = {};
+
+	std::system("clear");
+
+	auto tree_top = tree_tasks.begin();
+	auto tree_root = tree_tasks.insert(tree_top, "root");
+
+	if (!OutStream.is_open()) 
+	{
+		std::cout << "ERROR: Can't open" + json_filename << '\n';
+		return 1;
+	}
+
+	if (argc <= 1) 
+		InsertDataIntoTree(tree_root, tree_top);
+
+	DisplayDataFromTree(tree_tasks);
+
+	return 0;	
 }
