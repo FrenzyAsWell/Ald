@@ -2,6 +2,10 @@
 
 .gitmodules
 
+# src/
+
+src/examples
+
 # CMAKE #
 
 build/
