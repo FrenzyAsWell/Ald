@@ -1,8 +1,23 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.27.7)
-PROJECT(Ald_TaskManager)
+cmake_minimum_required(VERSION 3.31.6)
+project(Ald_TaskManager)
 
-SET(exec_name "client")
+include(FetchContent)
 
-ADD_EXECUTABLE(${exec_name} src/main.cpp)
+set(VAR_FRAMEWORK "FTXUI")
+set(VAR_MODULES "./external")
 
-TARGET_LINK_DIRECTORIES(${exec_name} PRIVATE ${CMAKE_SOURCE_DIR}/external/tree.hh/src/)
+FetchContent_Declare(
+	${VAR_FRAMEWORK}
+	SOURCE_DIR ${CMAKE_SOURCE_DIR}/${VAR_MODULES}/${VAR_FRAMEWORK}
+	GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
+	GIT_TAG v6.1.9
+)
+FetchContent_MakeAvailable(${VAR_FRAMEWORK})
+
+add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/src/main.cpp)
+target_link_directories(
+	${PROJECT_NAME}
+	PRIVATE ftxui::screen
+	PRIVATE ftxui::dom
+	PRIVATE ftxui::component
+)
