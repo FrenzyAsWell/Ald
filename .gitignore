@@ -6,6 +6,10 @@
 
 src/examples
 
+# Modules
+
+external/
+
 # CMAKE #
 
 build/
