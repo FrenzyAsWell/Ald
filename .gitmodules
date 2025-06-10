@@ -1,3 +1,9 @@
 [submodule "external/tree.hh"]
 	path = external/tree.hh
 	url = https://github.com/kpeeters/tree.hh.git
+[submodule "external/jsoncpp"]
+	path = external/jsoncpp
+	url = https://github.com/nlohmann/json.git
+[submodule "external/FTXUI"]
+	path = external/FTXUI
+	url = https://github.com/ArthurSonzogni/FTXUI.git
