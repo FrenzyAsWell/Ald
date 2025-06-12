@@ -3,6 +3,7 @@ project(Ald_TaskManager)
 
 include(FetchContent)
 
+set(EXEC_NAME "client")
 set(MODULES_PATH "./external")
 set(FRAMEWORK_NAME "FTXUI")
 set(FRAMEWORK_URL "https://github.com/ArthurSonzogni/FTXUI.git")
@@ -21,9 +22,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(${FRAMEWORK_NAME})
 
-add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/src/main.cpp)
+add_executable(${EXEC_NAME} ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(
-	${PROJECT_NAME}
+	${EXEC_NAME}
 	PRIVATE ftxui::screen
 	PRIVATE ftxui::dom
 	PRIVATE ftxui::component
