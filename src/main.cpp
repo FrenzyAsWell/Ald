@@ -1,94 +1,62 @@
-#include <algorithm>
-#include <cstdlib>
-#include <forward_list>
-#include <fstream>
-#include <ios>
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_options.hpp>
+#include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/screen.hpp>
+
 #include <iostream>
-#include <limits>
-#include <string>
-#include <type_traits>
-#include <vector>
-#include "../external/tree.hh/src/tree.hh"
 
-#include <nlohmann/json.hpp>
+int main (int argc, char *argv[]) {
+	ftxui::ScreenInteractive entScreen = ftxui::ScreenInteractive::Fullscreen();
+	
+	std::string strInput;
+	
+	std::vector<std::string> listNotation_options = {
+		"Writing",
+		"Construct",
+		"Drawing",
+	};
 
-#define SKIP_ARGV 1
+	int iSelected_option = 0;
+	std::vector<std::string> listOptions_frontend = {
+		"Notepad",
+		"Tables",
+		"Whiteboard",
+	};
 
-struct task_t 
-{
-	std::string name;
-	int priority;
+	ftxui::Component entInput = ftxui::Input(&strInput, "notepad");
 
-	std::vector<task_t> sub_tasks;
-} Ttask;
+	ftxui::MenuOption optMenu_frontend;
+	optMenu_frontend.on_enter = entScreen.ExitLoopClosure();
 
-std::string space_subtask = "";
+	ftxui::Component entMenu = ftxui::Menu(&listOptions_frontend, &iSelected_option, optMenu_frontend);
 
-int InsertDataIntoTree(tree<std::string>::iterator root_node, tree<std::string> base_tree)
-{
-	char DoSubtaskCreation = 'N';
+	ftxui::Component rMenu = ftxui::Renderer(entMenu, [&]{
+		return ftxui::vbox({
+			entMenu->Render(),
+			ftxui::separator(),
+			ftxui::text(listNotation_options[iSelected_option]),
+		}) | ftxui::border;
+	});
 
-	int subtasks_count = 0;
-	std::string subtask_name = " ";
+	ftxui::Component rInput = ftxui::Renderer(entInput, [&]{
+		return ftxui::vbox({
+			entInput->Render() | ftxui::flex,
+			ftxui::separator(),
+			ftxui::text("Formatted: " + strInput),
+		});
+	});
 
-	std::cout << "Enter count sub-tasks for " << *root_node << ": ";
-	std::cin >> subtasks_count;
+	entScreen.Loop(rMenu);
 
-	for (int a = 0; a < subtasks_count; a++) 
-	{
-		std::cout << "Enter Sub-task name: "	;
+	switch (iSelected_option) {
+		case 1: {
+			entScreen.Loop(entInput);
+			std::cout << "Result is" << ' ' << strInput << '\n';
+		};
 
-		std::cin >> subtask_name;
-		auto new_child = base_tree.append_child(root_node, subtask_name);
-
-		std::cout << "Do you want to create sub-tasks for " << subtask_name << ": ";
-		std::cin >> DoSubtaskCreation;
-
-		if (DoSubtaskCreation != 'N') 
-			InsertDataIntoTree(new_child, base_tree);
+		default: std::cout << "Needs to be implemented..." << '\n';
 	}
 
 	return 0;
-}
-
-
-void DisplayDataFromTree(tree<std::string> tree_tasks)
-{
-	auto locator_helper = std::find(tree_tasks.begin(), tree_tasks.end(), "root");
-	if (locator_helper != tree_tasks.end())
-	{
-		for (tree<std::string>::iterator sibiling_root = tree_tasks.begin(locator_helper); sibiling_root != tree_tasks.end(locator_helper); ++sibiling_root) 
-		{
-			for (int a = 0; a < tree_tasks.depth(sibiling_root) - 1; ++a)
-				std::cout << ' ';
-			std::cout << *sibiling_root << '\n';
-		}
-	}
-}
-
-int main(int argc, char* argv[])
-{
-	std::string json_filename = "../resources/task.json";
-	std::ofstream OutStream(json_filename);
-
-	tree<std::string> tree_tasks = {};
-	nlohmann::json json_editor = {};
-
-	std::system("clear");
-
-	auto tree_top = tree_tasks.begin();
-	auto tree_root = tree_tasks.insert(tree_top, "root");
-
-	if (!OutStream.is_open()) 
-	{
-		std::cout << "ERROR: Can't open" + json_filename << '\n';
-		return 1;
-	}
-
-	if (argc <= 1) 
-		InsertDataIntoTree(tree_root, tree_top);
-
-	DisplayDataFromTree(tree_tasks);
-
-	return 0;	
 }
